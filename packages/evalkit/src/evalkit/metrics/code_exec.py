@@ -107,7 +107,9 @@ def _make_preexec_fn() -> Any:
 
     def _set_limits() -> None:
         with contextlib.suppress(ValueError, OSError, AttributeError):
-            resource.setrlimit(resource.RLIMIT_CPU, (5, 5))
+            # Soft 5 s raises SIGXCPU (classified as timeout). With soft == hard, Linux
+            # sends SIGKILL instead, which is indistinguishable from other kills.
+            resource.setrlimit(resource.RLIMIT_CPU, (5, 6))
 
         # Skip RLIMIT_AS on macOS (unsupported or causes immediate SIGSEGV during python init)
         if sys.platform != "darwin":
