@@ -6,8 +6,8 @@ requires-python = ">=3.12,<3.13"
 [tool.uv.workspace]
 members = ["packages/*"]
 
-[tool.uv]
-dev-dependencies = ["pytest>=8", "ruff>=0.6", "mypy>=1.11"]
+[dependency-groups]
+dev = ["pytest>=8", "ruff>=0.6", "mypy>=1.11"]
 
 [tool.ruff]
 line-length = 100
