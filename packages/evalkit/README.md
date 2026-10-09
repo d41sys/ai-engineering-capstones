@@ -11,7 +11,7 @@ Evaluating LLMs accurately requires consistent metric definitions, reproducible 
 2. Pure Python implementations of classical metrics (exact match, token F1, BLEU-4, ROUGE-L, chrF, accuracy)
 3. Subprocess code execution sandbox with CPU/memory limits and unbiased Codex pass@k
 4. Perplexity and Expected Calibration Error (ECE) with reliability diagrams
-5. Bootstrap confidence intervals and deterministic Bradley-Terry / Elo ratings
+5. Bootstrap confidence intervals and deterministic Elo ratings (interleaved match order)
 6. Resumable multi-threaded evaluation runner with automated markdown leaderboard generation
 
 ## Architecture
