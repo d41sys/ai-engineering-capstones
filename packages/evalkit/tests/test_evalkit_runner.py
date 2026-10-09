@@ -59,3 +59,25 @@ metrics:
     assert summary2.total_skipped == 15
     # Leaderboard still generated
     assert len(summary2.leaderboard.models) == 3
+
+
+def test_classification_mock_models_pick_from_label_set(tmp_path: Path) -> None:
+    # Rows carry no "type" key: the label set must come from the spec's targets.
+    labels = ["negative", "positive"]
+    rows = [{"id": f"s{i}", "text": f"t{i}", "target": labels[i % 2]} for i in range(40)]
+    data_file = tmp_path / "data.jsonl"
+    data_file.write_text("\n".join(json.dumps(r) for r in rows), encoding="utf-8")
+    spec = TaskSpec(
+        name="sent",
+        version="1",
+        type="classification",
+        dataset=str(data_file),
+        prompt_template="{text}",
+        metrics=["accuracy"],
+    )
+    run([spec], [RandomModel(), NoisyModel(noise_rate=1.0)], tmp_path / "out")
+    lines = (tmp_path / "out" / "results.jsonl").read_text(encoding="utf-8").splitlines()
+    records = [json.loads(line) for line in lines]
+    assert {r["prediction"] for r in records} <= set(labels)
+    noisy = [r for r in records if r["model"].startswith("noisy")]
+    assert all(r["score"] == 0.0 for r in noisy)

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import math
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 
 import numpy as np
@@ -44,6 +44,35 @@ def macro_average(task_scores: dict[str, float] | Sequence[float]) -> float:
     return float(np.mean(scores))
 
 
+def bootstrap_macro_ci(
+    task_scores: Mapping[str, Sequence[float]],
+    num_resamples: int = 1000,
+    confidence_level: float = 0.95,
+    seed: int = 0,
+) -> tuple[float, float, float]:
+    """Macro mean with a stratified bootstrap CI: resample examples within each task,
+    then average the per-task means, so the interval matches the macro statistic.
+
+    Scores are sorted per task first, so the result does not depend on the order
+    records arrived in (e.g. thread completion order)."""
+    tasks = [np.sort(np.asarray(task_scores[t], dtype=np.float64)) for t in sorted(task_scores)]
+    tasks = [a for a in tasks if a.size > 0]
+    if not tasks:
+        return (0.0, 0.0, 0.0)
+    point = float(np.mean([a.mean() for a in tasks]))
+    if num_resamples <= 0:
+        return (point, point, point)
+    rng = np.random.default_rng(seed)
+    per_task = np.stack(
+        [rng.choice(a, size=(num_resamples, a.size), replace=True).mean(axis=1) for a in tasks]
+    )
+    macro = per_task.mean(axis=0)
+    alpha = 1.0 - confidence_level
+    lo = float(np.percentile(macro, 100.0 * (alpha / 2.0)))
+    hi = float(np.percentile(macro, 100.0 * (1.0 - alpha / 2.0)))
+    return (point, lo, hi)
+
+
 def compute_elo_ratings(
     matches: Sequence[tuple[str, str, float]],
     base_rating: float = 1000.0,
@@ -55,13 +84,15 @@ def compute_elo_ratings(
         1.0: A won
         0.5: tie
         0.0: B won
-    Matches are sorted deterministically before processing.
+    Matches are processed in the given order; pass them in a deterministic,
+    interleaved order (``build_pairwise_matches`` orders by example). Sorting by
+    model pair would play all games of one pair before the next and make the
+    final ratings an artifact of that grouping.
     """
     if not matches:
         return {}
 
-    # Deterministic ordering
-    sorted_matches = sorted(matches, key=lambda m: (m[0], m[1], m[2]))
+    sorted_matches = list(matches)
 
     # Initialize ratings
     all_models: set[str] = set()

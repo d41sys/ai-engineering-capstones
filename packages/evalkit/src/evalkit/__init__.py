@@ -3,6 +3,7 @@ from __future__ import annotations
 from .aggregate import (
     LeaderboardReport,
     ModelSummary,
+    bootstrap_macro_ci,
     bootstrap_mean_ci,
     compute_elo_ratings,
     macro_average,
@@ -41,6 +42,7 @@ __all__ = [
     "RandomModel",
     "SpecError",
     "TaskSpec",
+    "bootstrap_macro_ci",
     "bootstrap_mean_ci",
     "compute_elo_ratings",
     "extract_template_variables",

@@ -53,6 +53,9 @@ def _get_target_from_example(example: dict[str, Any] | None) -> str:
     return ""
 
 
+_CHOICE_TASKS = frozenset({"multiple_choice", "classification"})
+
+
 class OracleModel:
     """Perfect model that always outputs ground truth when available."""
 
@@ -89,7 +92,7 @@ class OracleModel:
         example: dict[str, Any] | None = None,
         **kwargs: Any,
     ) -> Prediction:
-        if task_type == "multiple_choice" and choices:
+        if task_type in _CHOICE_TASKS and choices:
             text = self.choose(prompt, choices, example=example, **kwargs)
         else:
             text = self.generate(prompt, example=example, **kwargs)
@@ -105,21 +108,21 @@ class NoisyModel:
 
     def __init__(self, noise_rate: float = 0.3, seed: int = 42, name: str | None = None) -> None:
         self.noise_rate = float(noise_rate)
-        self.rng = random.Random(seed)
+        self.seed = seed
         self.name = name or f"noisy:{self.noise_rate}"
+
+    def _rng(self, prompt: str) -> random.Random:
+        # Per-prompt RNG: results are independent of thread scheduling order.
+        return random.Random(f"{self.seed}:{prompt}")
 
     def generate(self, prompt: str, **kwargs: Any) -> str:
         example = kwargs.get("example")
-        if self.rng.random() >= self.noise_rate:
+        if self._rng(prompt).random() >= self.noise_rate:
             ans = _get_target_from_example(example)
             if ans:
                 return ans
-        # Corrupted output
         if example and "canonical_solution" in example:
             return "    return None"
-        if example and example.get("type") == "classification":
-            target = _get_target_from_example(example).lower()
-            return "negative" if target == "positive" else "positive"
         return "I am not certain"
 
     def logprobs(self, prompt: str, candidate: str) -> list[float]:
@@ -127,6 +130,7 @@ class NoisyModel:
         return [-0.4] * tokens
 
     def choose(self, prompt: str, choices: Sequence[str], **kwargs: Any) -> str:
+        rng = self._rng(prompt)
         example = kwargs.get("example")
         target = _get_target_from_example(example)
         correct_choice = choices[0] if choices else ""
@@ -136,14 +140,13 @@ class NoisyModel:
                     correct_choice = ch
                     break
 
-        if self.rng.random() >= self.noise_rate and correct_choice:
+        if rng.random() >= self.noise_rate and correct_choice:
             return correct_choice
 
-        # Pick wrong choice
         wrong_choices = [c for c in choices if c != correct_choice]
         if wrong_choices:
-            return self.rng.choice(wrong_choices)
-        return self.rng.choice(choices) if choices else ""
+            return rng.choice(wrong_choices)
+        return rng.choice(choices) if choices else ""
 
     def predict(
         self,
@@ -153,13 +156,13 @@ class NoisyModel:
         example: dict[str, Any] | None = None,
         **kwargs: Any,
     ) -> Prediction:
-        if task_type == "multiple_choice" and choices:
+        if task_type in _CHOICE_TASKS and choices:
             text = self.choose(prompt, choices, example=example, **kwargs)
         else:
             text = self.generate(prompt, example=example, **kwargs)
 
         lps = self.logprobs(prompt, text)
-        confidence = float(self.rng.uniform(0.65, 0.85))
+        confidence = float(self._rng(prompt + "\x00conf").uniform(0.65, 0.85))
         nll = float(-sum(lps))
         return Prediction(text=text, confidence=confidence, logprobs=lps, token_nll=nll)
 
@@ -168,23 +171,24 @@ class RandomModel:
     """Model that outputs random guesses."""
 
     def __init__(self, seed: int = 42, name: str = "random") -> None:
-        self.rng = random.Random(seed)
+        self.seed = seed
         self.name = name
+
+    def _rng(self, prompt: str) -> random.Random:
+        return random.Random(f"{self.seed}:{prompt}")
 
     def generate(self, prompt: str, **kwargs: Any) -> str:
         example = kwargs.get("example")
         if example and "canonical_solution" in example:
             return "    pass"
-        if example and example.get("type") == "classification":
-            return self.rng.choice(["positive", "negative"])
-        return str(self.rng.randint(0, 100))
+        return str(self._rng(prompt).randint(0, 100))
 
     def logprobs(self, prompt: str, candidate: str) -> list[float]:
         tokens = max(1, len(candidate.split()))
         return [-2.0] * tokens
 
     def choose(self, prompt: str, choices: Sequence[str], **kwargs: Any) -> str:
-        return self.rng.choice(choices) if choices else ""
+        return self._rng(prompt).choice(choices) if choices else ""
 
     def predict(
         self,
@@ -194,13 +198,13 @@ class RandomModel:
         example: dict[str, Any] | None = None,
         **kwargs: Any,
     ) -> Prediction:
-        if task_type == "multiple_choice" and choices:
+        if task_type in _CHOICE_TASKS and choices:
             text = self.choose(prompt, choices, example=example, **kwargs)
         else:
             text = self.generate(prompt, example=example, **kwargs)
 
         lps = self.logprobs(prompt, text)
-        confidence = float(self.rng.uniform(0.2, 0.45))
+        confidence = float(self._rng(prompt + "\x00conf").uniform(0.2, 0.45))
         nll = float(-sum(lps))
         return Prediction(text=text, confidence=confidence, logprobs=lps, token_nll=nll)
 
@@ -268,7 +272,7 @@ class AnthropicModel:
         example: dict[str, Any] | None = None,
         **kwargs: Any,
     ) -> Prediction:
-        if task_type == "multiple_choice" and choices:
+        if task_type in _CHOICE_TASKS and choices:
             text = self.choose(prompt, choices, example=example, **kwargs)
         else:
             text = self.generate(prompt, example=example, **kwargs)

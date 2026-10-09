@@ -48,21 +48,21 @@ Benchmark results on bundled evaluation tasks (35 arithmetic, 35 trivia MCQ, 10 
 
 | Rank | Model | Macro Mean | 95% CI | Win Rate | Elo Rating | ECE (15 bins) | Brier Score |
 |------|-------|------------|--------|----------|------------|---------------|-------------|
-| 1 | oracle | 1.000 | [1.000, 1.000] | 0.822 | 1181.9 | 0.010 | 0.000 |
-| 2 | noisy:0.3 | 0.654 | [0.548, 0.730] | 0.554 | 1273.6 | 0.099 | 0.238 |
-| 3 | random | 0.057 | [0.026, 0.122] | 0.124 | 544.5 | 0.256 | 0.138 |
+| 1 | oracle | 1.000 | [1.000, 1.000] | 0.772 | 1145.2 | 0.010 | 0.000 |
+| 2 | noisy:0.3 | 0.714 | [0.614, 0.800] | 0.543 | 1044.5 | 0.098 | 0.210 |
+| 3 | random | 0.179 | [0.129, 0.236] | 0.185 | 810.3 | 0.124 | 0.183 |
 
 Per-task means:
 
 | Model | arithmetic_qa | code_humaneval | sentiment | trivia_mcq |
 |-------|---------------|----------------|-----------|------------|
 | oracle | 1.000 | 1.000 | 1.000 | 1.000 |
-| noisy:0.3 | 0.657 | 0.700 | 0.600 | 0.657 |
-| random | 0.000 | 0.000 | 0.000 | 0.229 |
+| noisy:0.3 | 0.714 | 0.800 | 0.657 | 0.686 |
+| random | 0.000 | 0.000 | 0.514 | 0.200 |
 
-Rerun of the same command reported `Evaluated: 0, Skipped: 345` (full resume).
+Random sits at chance on the 2-label sentiment task (0.514) and the 4-option MCQ (0.200). Rerunning the same command reports `Evaluated: 0, Skipped: 345` (full resume), and a fresh run reproduces `leaderboard.md` byte for byte.
 
-Headline: **oracle macro mean = 1.000 > noisy:0.3 = 0.654 > random = 0.057**.
+Headline: **oracle macro mean = 1.000 > noisy:0.3 = 0.714 > random = 0.179**.
 
 ## Design Decisions
 
@@ -70,3 +70,7 @@ Headline: **oracle macro mean = 1.000 > noisy:0.3 = 0.654 > random = 0.057**.
 - **Subprocess Isolation**: Code execution runs with `python -I` under temporary working directories with POSIX CPU limits (5s) and address space limits (512MB) applied via `preexec_fn`.
 - **Unbiased pass@k**: Implemented using Chen et al. (2021) unbiased combinatoric formulation to prevent finite-sample estimation bias.
 - **Strict Spec Invariants**: Template variables declared in prompt templates are strictly validated against dataset rows upon loading to eliminate runtime format errors.
+- **Classification as constrained choice**: the label set is every distinct target in the dataset, and models pick from it the same way they pick MCQ options.
+- **Per-prompt RNG in mock models**: each prediction seeds its own `random.Random(f"{seed}:{prompt}")`, so results don't depend on thread scheduling under the 4-worker pool.
+- **CI matches the statistic**: the 95% CI is a stratified bootstrap of the macro mean (resample within each task, then average), not a pooled micro mean.
+- **Elo over interleaved matches**: games are played in example order. Grouping them by model pair let `noisy` out-rate `oracle` purely because of the order the games were played.

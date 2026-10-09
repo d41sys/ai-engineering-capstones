@@ -12,10 +12,9 @@ from typing import Any
 from .aggregate import (
     LeaderboardReport,
     ModelSummary,
-    bootstrap_mean_ci,
+    bootstrap_macro_ci,
     build_pairwise_matches,
     compute_elo_ratings,
-    macro_average,
 )
 from .metrics.calibration import brier_score, expected_calibration_error
 from .metrics.classical import score_classical
@@ -98,9 +97,10 @@ def _evaluate_single(
     model: Model,
     example: dict[str, Any],
     example_id: str,
+    labels: Sequence[str] | None = None,
 ) -> EvalRecord:
     prompt = spec.render_prompt(example)
-    choices = example.get("choices")
+    choices = example.get("choices") or labels
     targets = _extract_targets(example)
 
     # Use model prediction
@@ -188,12 +188,8 @@ def generate_leaderboard(records: Sequence[EvalRecord]) -> LeaderboardReport:
             t: float(sum(scores) / len(scores)) for t, scores in task_scores.items()
         }
 
-        # Macro average
-        macro_mean = macro_average(per_task_means)
-
-        # Bootstrap CI on all example scores
-        all_scores = [r.score for r in recs]
-        _, ci_lo, ci_hi = bootstrap_mean_ci(all_scores, num_resamples=1000, seed=0)
+        # Macro average with a stratified bootstrap CI over the same statistic
+        macro_mean, ci_lo, ci_hi = bootstrap_macro_ci(task_scores, num_resamples=1000, seed=0)
 
         # Calibration
         confs = [r.confidence for r in recs]
@@ -261,11 +257,17 @@ def run(
                 except Exception:
                     continue
 
-    work_items: list[tuple[TaskSpec, Model, dict[str, Any], str]] = []
+    work_items: list[tuple[TaskSpec, Model, dict[str, Any], str, list[str] | None]] = []
     total_skipped = 0
 
     for spec in specs:
         rows = spec.load_dataset()
+        # Classification: the label set is every distinct target in the dataset.
+        labels = (
+            sorted({t for row in rows for t in _extract_targets(row)})
+            if spec.type == "classification"
+            else None
+        )
         for idx, row in enumerate(rows):
             ex_id = str(row.get("id", row.get("task_id", f"ex_{idx:04d}")))
             for model in models:
@@ -273,7 +275,7 @@ def run(
                 if key in completed_keys:
                     total_skipped += 1
                 else:
-                    work_items.append((spec, model, row, ex_id))
+                    work_items.append((spec, model, row, ex_id, labels))
 
     newly_evaluated = 0
     new_records: list[EvalRecord] = []
@@ -283,12 +285,12 @@ def run(
         workers = max(1, min(max_workers, len(work_items)))
         with ThreadPoolExecutor(max_workers=workers) as executor:
             future_to_item = {
-                executor.submit(_evaluate_single, spec, model, row, ex_id): (
+                executor.submit(_evaluate_single, spec, model, row, ex_id, labels): (
                     spec.name,
                     model.name,
                     ex_id,
                 )
-                for spec, model, row, ex_id in work_items
+                for spec, model, row, ex_id, labels in work_items
             }
 
             with open(results_file, "a", encoding="utf-8") as out_f:
