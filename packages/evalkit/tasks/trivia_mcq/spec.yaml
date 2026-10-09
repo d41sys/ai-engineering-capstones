@@ -1,0 +1,9 @@
+name: trivia_mcq
+version: "1.0.0"
+type: multiple_choice
+dataset: data.jsonl
+prompt_template: "Question: {question}\n{choices_text}\nAnswer:"
+metrics:
+  - accuracy
+  - exact_match
+few_shot: 0
