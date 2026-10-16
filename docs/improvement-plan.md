@@ -49,3 +49,12 @@ Total: Phase A ≈ 4 days, Phase B ≈ 7 days plus your QA review.
 | C-M | ✅ | minigpt 12-fold rolling NL price backtest, Diebold-Mariano (HLN) + paired bootstrap | 5-seed ensemble MAE 21.25 vs ridge 22.66, DM p = 0.016; each single seed ties with ridge (p 0.14–0.95) |
 | C-R | ✅ | ragkit abstention signals on EU set: AUROC, risk-coverage, CV thresholds | no signal separates answerable/unanswerable on EU; `query_support` AUROC 0.642 [0.48, 0.80] vs 0.987 synthetic |
 | C-S | ✅ | safegate `spec-check`: deterministic bounds gate on the emitted optimiser spec | evaluated in the private flexgridcyber repo (unpublished) |
+
+## Phase D: fix the weakest measured result
+
+| Id | Status | Move | Result |
+|---|---|---|---|
+| D-S | ✅ | safegate stage-2 v2 (char n-grams, calibrated threshold, escalate band), cross-dataset protocol | in-domain deepset: 70% det / 1.8% FPR (legacy 27% / 0%); cross-dataset FPR not improved, so legacy stays default, v2 opt-in |
+| D-E | ✅ | evalkit `tasks_hard/gsm8k` (240, MIT) sized by power analysis | 1.5B vs 3B now resolved (−0.113 [−0.183, −0.042]); MDE 0.10 at n = 240 |
+| D-R | ✅ | ragkit 45 unanswerable EU questions + combined logistic abstention, nested CV | still no separating signal: combined 0.589 vs `query_support` 0.587 AUROC |
+| D-M | ✅ | minigpt quantile forecasts (pinball), 12 folds | ensemble ties linear quantile regression (DM p = 0.112); 80% interval undercovers (75.9%) |
