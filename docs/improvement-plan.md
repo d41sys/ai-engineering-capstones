@@ -21,7 +21,7 @@ Order: ragkit A → minigpt A → safegate A → evalkit A → Phase B in the sa
 |---|---|---|---|---|
 | M1 ✅ | A | **Lesson-41 eval pipeline**: perplexity + exact-match + token F1 + mock judge, aggregated into one weighted per-task report | `minigpt eval` prints the four metrics and the aggregate; unit tests for EM/F1 normalisation | 0.5 day |
 | M2 ✅ | A | **DPO < SFT on ROUGE-L**: β sweep and an explanation, not a hidden number | table over β ∈ {0.05, 0.1, 0.5}; README states the outcome either way | 0.5 day |
-| M3 | B | Day-ahead price forecasting with the same transformer on public ENTSO-E/Octopus data vs seasonal-naive baseline | MAE vs baseline on a held-out month | 2 days |
+| M3 ✅ | B | Day-ahead price forecasting with the same transformer on public ENTSO-E/Octopus data vs seasonal-naive baseline | MAE vs baseline on a held-out month | 2 days |
 
 ## safegate
 
@@ -40,3 +40,12 @@ Order: ragkit A → minigpt A → safegate A → evalkit A → Phase B in the sa
 | E3 ✅ | B | Real local model adapter (HF transformers / MLX), run the bundled tasks on 2–3 small open models | leaderboard with CIs in README; run cost and hardware stated | 1 day |
 
 Total: Phase A ≈ 4 days, Phase B ≈ 7 days plus your QA review.
+
+## Phase C: differentiators (from `docs/gap-analysis.md`)
+
+| Id | Status | Move | Result |
+|---|---|---|---|
+| C-E | ✅ | evalkit `compare --all-pairs`: randomisation test, Holm, MDE, n for 80% power, tie groups | Qwen 1.5B vs 3B unresolved (diff 0 on 115 paired examples); 0.5B resolved vs all |
+| C-M | ✅ | minigpt 12-fold rolling NL price backtest, Diebold-Mariano (HLN) + paired bootstrap | transformer (5-seed) MAE 21.25 vs ridge 22.66, DM p = 0.016; single seed only 0.48 better (untested) |
+| C-R | ✅ | ragkit abstention signals on EU set: AUROC, risk-coverage, CV thresholds | no signal separates answerable/unanswerable on EU; `query_support` AUROC 0.642 [0.48, 0.80] vs 0.987 synthetic |
+| C-S | open | safegate `spec-check` on the emitted optimiser spec, scored on FlexGridCyber pilot rows | – |
