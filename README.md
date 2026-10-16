@@ -4,10 +4,10 @@ Four from-scratch AI engineering systems, each in its own repository, plus one r
 
 | Repo | Demonstrates | Headline |
 |---|---|---|
-| [`ragkit`](https://github.com/d41sys/ragkit) | Chunking, BM25, dense + hybrid retrieval, reranking, query rewriting, retrieval/answer metrics | Hybrid RRF: recall@5 1.00, MRR 0.944, nDCG@10 0.958 (40 questions, 25 docs) |
-| [`minigpt`](https://github.com/d41sys/minigpt) | Byte-level BPE, GPT architecture, pretraining, GPT-2 weight loading, classification fine-tune, SFT, DPO | Tiny-Shakespeare val loss 6.99 → 3.65 (−48%); SMS spam test acc 0.940; GPT-2 124M greedy parity with HF |
-| [`safegate`](https://github.com/d41sys/safegate) | Prompt-injection detection, refusal eval, content classification, constitutional rules, streaming output gate | Held-out detection 39/39, benign FPR 0/42 (small self-authored set) |
-| [`evalkit`](https://github.com/d41sys/evalkit) | Task specs, classical/code/calibration metrics, sandboxed code exec, bootstrap CIs, Elo, resumable runner | Macro score oracle 1.000 > noisy:0.3 0.714 > random 0.179 over 345 example-model pairs |
+| [`ragkit`](https://github.com/d41sys/ragkit) | Chunking, BM25, dense + hybrid retrieval, reranking, query rewriting, retrieval/answer metrics | Real EU corpus (94 articles from 6 grid regulations, 42 agent-drafted questions): BM25 recall@5 0.893 [0.80, 0.96] > dense 0.750; refusal threshold calibrated on synthetic data does not transfer (answers 22/42) |
+| [`minigpt`](https://github.com/d41sys/minigpt) | Byte-level BPE, GPT architecture, pretraining, GPT-2 weight loading, classification fine-tune, SFT, DPO | Tiny-Shakespeare val loss 6.99 → 3.65 (−48%); SMS spam test acc 0.940; SFT cuts held-out Alpaca ppl 409 → 39; DPO (β 0.05–0.5) no gain over SFT |
+| [`safegate`](https://github.com/d41sys/safegate) | Prompt-injection detection, refusal eval, content classification, constitutional rules, streaming output gate | Public `deepset/prompt-injections` test: full gate detects 48% [36, 61], blocks 27% [17, 40] of benign prompts (self-authored 39/39 does not hold) |
+| [`evalkit`](https://github.com/d41sys/evalkit) | Task specs, classical/code/calibration metrics, sandboxed code exec, bootstrap CIs, Elo, resumable runner | Local Qwen2.5 via `hf:` adapter: 1.5B 0.986, 3B 0.968, 0.5B 0.829 macro; 1.5B vs 3B tie on 113/115 paired examples, 0.5B < 1.5B (sign p 5e-7) |
 | `flexgridcyber` (private, research) | Prompt injection at the formalization step of LLM energy-flexibility agents | Feasibility pilot on Qwen2.5 3B/7B |
 
 ```bash
