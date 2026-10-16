@@ -34,9 +34,9 @@ One sentence: **"I build the evidence layer for LLM agents in energy systems: gr
 | minigpt | Same from-scratch transformer, applied to NL prices, tested like a forecaster, not a demo | 12-fold DM table, honest verdict |
 | safegate | Guard the formalization step | Text-guard vs spec-guard table on pilot attacks |
 | evalkit | Shared statistical backbone for all three | Holm / power outputs cited in the other READMEs |
-| FlexGridCyber (private) | The research question that motivates the rest | Pilot: 111/144 effective forged edits (7B 4-bit), 108/111 still feasible (its README) |
+| FlexGridCyber (private) | The research question that motivates the rest | Pilot results (private repo, unpublished) |
 
-Fit: the closest published work I opened ([agentic HEMS, 2026](https://arxiv.org/abs/2607.04569)) concludes every committed schedule needs an independent deterministic validator, and flags fabricated schedules; [NL→solver-ready power optimisation](https://arxiv.org/abs/2508.08147) uses validation-in-the-loop. Both are non-adversarial. Your portfolio sits one step later: what happens when the text feeding the formalizer is forged. The FlexGridCyber audit says one related 2026 paper (Narration Gap) has a TU/e co-author [from the audit, not re-opened by me].
+Fit: the closest published work I opened ([agentic HEMS, 2026](https://arxiv.org/abs/2607.04569)) concludes every committed schedule needs an independent deterministic validator, and flags fabricated schedules; [NL→solver-ready power optimisation](https://arxiv.org/abs/2508.08147) uses validation-in-the-loop. Both are non-adversarial. Your portfolio sits one step later: what happens when the text feeding the formalizer is forged.
 
 ## 4. Order of work
 
