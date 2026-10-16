@@ -46,6 +46,6 @@ Total: Phase A ≈ 4 days, Phase B ≈ 7 days plus your QA review.
 | Id | Status | Move | Result |
 |---|---|---|---|
 | C-E | ✅ | evalkit `compare --all-pairs`: randomisation test, Holm, MDE, n for 80% power, tie groups | Qwen 1.5B vs 3B unresolved (diff 0 on 115 paired examples); 0.5B resolved vs all |
-| C-M | ✅ | minigpt 12-fold rolling NL price backtest, Diebold-Mariano (HLN) + paired bootstrap | transformer (5-seed) MAE 21.25 vs ridge 22.66, DM p = 0.016; single seed only 0.48 better (untested) |
+| C-M | ✅ | minigpt 12-fold rolling NL price backtest, Diebold-Mariano (HLN) + paired bootstrap | 5-seed ensemble MAE 21.25 vs ridge 22.66, DM p = 0.016; each single seed ties with ridge (p 0.14–0.95) |
 | C-R | ✅ | ragkit abstention signals on EU set: AUROC, risk-coverage, CV thresholds | no signal separates answerable/unanswerable on EU; `query_support` AUROC 0.642 [0.48, 0.80] vs 0.987 synthetic |
 | C-S | ✅ | safegate `spec-check`: deterministic bounds gate on the emitted optimiser spec | evaluated in the private flexgridcyber repo (unpublished) |
