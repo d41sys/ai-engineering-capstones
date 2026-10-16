@@ -1,9 +1,0 @@
-name: sentiment
-version: "1.0.0"
-type: classification
-dataset: data.jsonl
-prompt_template: "Classify the sentiment of the following text as positive or negative.\n\nText: {text}\nSentiment:"
-metrics:
-  - accuracy
-  - f1
-few_shot: 0

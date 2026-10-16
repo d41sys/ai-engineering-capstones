@@ -1,0 +1,15 @@
+[submodule "ragkit"]
+	path = ragkit
+	url = https://github.com/d41sys/ragkit.git
+[submodule "minigpt"]
+	path = minigpt
+	url = https://github.com/d41sys/minigpt.git
+[submodule "safegate"]
+	path = safegate
+	url = https://github.com/d41sys/safegate.git
+[submodule "evalkit"]
+	path = evalkit
+	url = https://github.com/d41sys/evalkit.git
+[submodule "flexgridcyber"]
+	path = flexgridcyber
+	url = https://github.com/d41sys/flexgridcyber.git

@@ -1,8 +1,0 @@
-name: code_humaneval
-version: "1.0.0"
-type: code
-dataset: data.jsonl
-prompt_template: "{prompt}"
-metrics:
-  - code_exec
-few_shot: 0

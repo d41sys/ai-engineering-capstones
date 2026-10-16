@@ -1,9 +1,0 @@
-name: arithmetic_qa
-version: "1.0.0"
-type: generation
-dataset: data.jsonl
-prompt_template: "Question: {question}\nAnswer:"
-metrics:
-  - exact_match
-  - f1
-few_shot: 0
